@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153c35">
+  <title>SafeGuard ID | Review Desk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="SafeGuard ID home">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span>SafeGuard <span class="brand-light">ID</span></span>
+    </a>
+    <div class="topbar-meta">
+      <span class="privacy-label"><span class="privacy-dot"></span>Private review workspace</span>
+      <span id="connection" class="connection" role="status">Checking service</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="workspace" aria-labelledby="page-title">
+      <div class="eyebrow"><span class="eyebrow-rule"></span>FIELD OPERATIONS / REVIEW DESK</div>
+      <div class="title-row">
+        <div>
+          <h1 id="page-title">Age review</h1>
+          <p class="intro">Record a human-reviewed decision against your organization's applicable local requirements.</p>
+        </div>
+        <span class="mode-pill"><span class="mode-indicator"></span>QUICK REVIEW</span>
+      </div>
+
+      <div class="notice" role="note">
+        <span class="notice-symbol" aria-hidden="true">i</span>
+        <p>Review appropriate documents in person. This tool does not analyze faces, determine age, or provide legal advice. Worker references and the log stay in this browser; only the outcome is sent to the service for validation and is not stored there.</p>
+      </div>
+
+      <form id="review-form" class="review-form">
+        <label for="worker-reference">Worker reference <span class="optional">INTERNAL ID ONLY</span></label>
+        <input id="worker-reference" name="worker_reference" type="text" maxlength="80" autocomplete="off" placeholder="e.g. SITE-042 / CASE-018" required>
+
+        <fieldset>
+          <legend>Human review outcome</legend>
+          <div class="outcome-options">
+            <label class="outcome-option eligible-option">
+              <input type="radio" name="outcome" value="eligible" required>
+              <span class="choice-mark" aria-hidden="true"></span>
+              <span class="choice-copy"><strong>Meets requirement</strong><small>Confirmed by reviewer</small></span>
+            </label>
+            <label class="outcome-option ineligible-option">
+              <input type="radio" name="outcome" value="ineligible">
+              <span class="choice-mark" aria-hidden="true"></span>
+              <span class="choice-copy"><strong>Below requirement</strong><small>Confirmed by reviewer</small></span>
+            </label>
+            <label class="outcome-option pending-option">
+              <input type="radio" name="outcome" value="pending">
+              <span class="choice-mark" aria-hidden="true"></span>
+              <span class="choice-copy"><strong>Needs follow-up</strong><small>Do not make a determination</small></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="form-footer">
+          <span class="local-note"><span aria-hidden="true">↳</span> Entries stay in this browser</span>
+          <button id="submit-button" class="submit-button" type="submit"><span>Save review</span><span aria-hidden="true">↗</span></button>
+        </div>
+        <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+
+      <footer class="workspace-footer"><span>SAFEGUARD ID</span><span>Human review only · No biometric estimation</span></footer>
+    </section>
+
+    <aside class="audit-panel" aria-labelledby="audit-title">
+      <div class="audit-heading">
+        <div>
+          <div class="eyebrow audit-eyebrow">THIS BROWSER</div>
+          <h2 id="audit-title">Review log</h2>
+        </div>
+        <span id="review-count" class="count-badge">0</span>
+      </div>
+      <p class="audit-description">A private, local record for this device. Worker references are not uploaded or synced.</p>
+      <div class="audit-actions">
+        <button id="export-button" class="quiet-button" type="button" title="Export reviews as CSV" aria-label="Export reviews as CSV" disabled>↓ <span>Export CSV</span></button>
+        <button id="clear-button" class="icon-button" type="button" title="Clear review log" aria-label="Clear review log" disabled>×</button>
+      </div>
+      <div id="review-list" class="review-list" aria-live="polite"></div>
+      <div class="storage-note"><span class="storage-icon" aria-hidden="true">⌂</span><span>Stored only in this browser's local storage. Clearing browser data removes this log.</span></div>
+    </aside>
+  </main>
+</body>
+</html>
