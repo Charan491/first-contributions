@@ -1,9 +1,4 @@
 const STORAGE_KEY = "safeguard-id-reviews-v1";
-const outcomeLabels = {
-  eligible: "Meets applicable requirement",
-  ineligible: "Below applicable requirement",
-  pending: "Needs follow-up",
-};
 
 const form = document.querySelector("#review-form");
 const message = document.querySelector("#form-message");
@@ -12,6 +7,11 @@ const reviewList = document.querySelector("#review-list");
 const reviewCount = document.querySelector("#review-count");
 const exportButton = document.querySelector("#export-button");
 const clearButton = document.querySelector("#clear-button");
+const documentInput = document.querySelector("#supporting-document");
+const documentPreview = document.querySelector("#document-preview");
+const maxDocumentSize = 10 * 1024 * 1024;
+let selectedDocumentUrl = null;
+let selectedDocument = null;
 
 function getReviews() {
   try {
@@ -32,7 +32,7 @@ function renderReviews() {
   if (reviews.length === 0) {
     const empty = document.createElement("p");
     empty.className = "empty-state";
-    empty.textContent = "No reviews recorded on this device.";
+    empty.textContent = "No file checks recorded on this device.";
     reviewList.append(empty);
     return;
   }
@@ -49,8 +49,8 @@ function renderReviews() {
     date.textContent = new Date(review.createdAt).toLocaleString();
     const status = document.createElement("span");
     status.className = "entry-status";
-    status.dataset.outcome = review.outcome;
-    status.textContent = outcomeLabels[review.outcome] || "Needs follow-up";
+    status.dataset.check = "complete";
+    status.textContent = review.result;
     entry.append(reference, date, status);
     reviewList.append(entry);
   }
@@ -69,53 +69,135 @@ async function checkService() {
   }
 }
 
+function clearDocumentPreview() {
+  if (selectedDocumentUrl) URL.revokeObjectURL(selectedDocumentUrl);
+  selectedDocumentUrl = null;
+  selectedDocument = null;
+  documentInput.value = "";
+  documentPreview.replaceChildren();
+  documentPreview.hidden = true;
+  submitButton.disabled = true;
+}
+
+documentInput.addEventListener("change", () => {
+  const file = documentInput.files[0];
+  clearDocumentPreview();
+  if (!file) return;
+
+  const supportedTypes = ["application/pdf", "image/jpeg", "image/png"];
+  if (!supportedTypes.includes(file.type)) {
+    message.textContent = "Choose a PDF, JPG, or PNG file.";
+    return;
+  }
+  if (file.size > maxDocumentSize) {
+    message.textContent = "The selected file exceeds the 10 MB limit.";
+    return;
+  }
+
+  message.textContent = "";
+  selectedDocument = file;
+  submitButton.disabled = false;
+  selectedDocumentUrl = URL.createObjectURL(file);
+  documentPreview.hidden = false;
+
+  const meta = document.createElement("div");
+  meta.className = "preview-meta";
+  const name = document.createElement("span");
+  name.className = "preview-name";
+  name.textContent = file.name;
+  const size = document.createElement("span");
+  size.className = "preview-size";
+  size.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+  const remove = document.createElement("button");
+  remove.className = "preview-remove";
+  remove.type = "button";
+  remove.setAttribute("aria-label", "Remove supporting document");
+  remove.title = "Remove supporting document";
+  remove.textContent = "×";
+  remove.addEventListener("click", clearDocumentPreview);
+  meta.append(name, size, remove);
+  documentPreview.append(meta);
+
+  if (file.type.startsWith("image/")) {
+    const image = document.createElement("img");
+    image.className = "preview-image";
+    image.alt = "Local preview of selected supporting document";
+    image.src = selectedDocumentUrl;
+    documentPreview.append(image);
+  } else {
+    const pdf = document.createElement("iframe");
+    pdf.className = "preview-pdf";
+    pdf.title = "Local PDF preview";
+    pdf.src = selectedDocumentUrl;
+    documentPreview.append(pdf);
+  }
+});
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
   const reference = String(formData.get("worker_reference") || "").trim();
-  const outcome = String(formData.get("outcome") || "");
   message.textContent = "";
   message.classList.remove("success");
 
-  if (!reference || !outcome) {
-    message.textContent = "Enter a worker reference and select a review outcome.";
+  if (!reference || !selectedDocument || !selectedDocumentUrl) {
+    message.textContent = "Enter a worker reference and select a supported document.";
     return;
   }
 
   submitButton.disabled = true;
   try {
-    const response = await fetch("/api/reviews", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ outcome }),
-    });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.detail || "Could not save review.");
+    let result;
+    if (selectedDocument.type.startsWith("image/")) {
+      const image = new Image();
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error("Image check timed out. Try another file.")),
+          10000,
+        );
+        image.onload = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        image.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error("The selected image could not be opened."));
+        };
+        image.src = selectedDocumentUrl;
+      });
+      if (!image.naturalWidth || !image.naturalHeight) {
+        throw new Error("The selected image could not be opened.");
+      }
+      result = `Image opened (${image.naturalWidth} × ${image.naturalHeight}px)`;
+    } else {
+      result = "PDF type and size checked; contents not inspected";
+    }
 
     const reviews = getReviews();
-    reviews.push({ reference, outcome, createdAt: new Date().toISOString() });
+    reviews.push({ reference, result, createdAt: new Date().toISOString() });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
     renderReviews();
     form.reset();
-    message.textContent = "Review saved in this browser.";
+    clearDocumentPreview();
+    message.textContent = `${result}. No age or eligibility analysis was performed.`;
     message.classList.add("success");
   } catch (error) {
     message.textContent = error.message || "Service unavailable. Your review was not saved.";
   } finally {
-    submitButton.disabled = false;
+    submitButton.disabled = !selectedDocument;
   }
 });
 
 exportButton.addEventListener("click", () => {
-  const rows = [["Worker reference", "Human review outcome", "Recorded at"]];
+  const rows = [["Worker reference", "Technical file check", "Recorded at"]];
   for (const review of getReviews()) {
-    rows.push([review.reference, outcomeLabels[review.outcome] || "Needs follow-up", review.createdAt]);
+    rows.push([review.reference, review.result, review.createdAt]);
   }
   const csv = rows.map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\r\n");
   const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
   const link = document.createElement("a");
   link.href = url;
-  link.download = "safeguard-review-log.csv";
+  link.download = "safeguard-file-check-log.csv";
   link.click();
   URL.revokeObjectURL(url);
 });

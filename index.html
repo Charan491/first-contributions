@@ -28,67 +28,68 @@
       <div class="eyebrow"><span class="eyebrow-rule"></span>FIELD OPERATIONS / REVIEW DESK</div>
       <div class="title-row">
         <div>
-          <h1 id="page-title">Age review</h1>
-          <p class="intro">Record a human-reviewed decision against your organization's applicable local requirements.</p>
+          <h1 id="page-title">Document check</h1>
+          <p class="intro">Check file type and image readability locally. This tool does not make age or work eligibility decisions.</p>
         </div>
-        <span class="mode-pill"><span class="mode-indicator"></span>QUICK REVIEW</span>
+        <span class="mode-pill"><span class="mode-indicator"></span>FILE CHECK</span>
       </div>
 
       <div class="notice" role="note">
         <span class="notice-symbol" aria-hidden="true">i</span>
-        <p>Review appropriate documents in person. This tool does not analyze faces, determine age, or provide legal advice. Worker references and the log stay in this browser; only the outcome is sent to the service for validation and is not stored there.</p>
+        <p>Automated checks cover file type, size, and whether an image opens. They do not analyze faces, estimate age, determine work eligibility, or provide legal advice. Files and check logs stay in this browser.</p>
       </div>
 
       <form id="review-form" class="review-form">
         <label for="worker-reference">Worker reference <span class="optional">INTERNAL ID ONLY</span></label>
         <input id="worker-reference" name="worker_reference" type="text" maxlength="80" autocomplete="off" placeholder="e.g. SITE-042 / CASE-018" required>
 
-        <fieldset>
-          <legend>Human review outcome</legend>
-          <div class="outcome-options">
-            <label class="outcome-option eligible-option">
-              <input type="radio" name="outcome" value="eligible" required>
-              <span class="choice-mark" aria-hidden="true"></span>
-              <span class="choice-copy"><strong>Meets requirement</strong><small>Confirmed by reviewer</small></span>
-            </label>
-            <label class="outcome-option ineligible-option">
-              <input type="radio" name="outcome" value="ineligible">
-              <span class="choice-mark" aria-hidden="true"></span>
-              <span class="choice-copy"><strong>Below requirement</strong><small>Confirmed by reviewer</small></span>
-            </label>
-            <label class="outcome-option pending-option">
-              <input type="radio" name="outcome" value="pending">
-              <span class="choice-mark" aria-hidden="true"></span>
-              <span class="choice-copy"><strong>Needs follow-up</strong><small>Do not make a determination</small></span>
-            </label>
+        <div class="upload-section">
+          <div class="upload-heading">
+            <label for="supporting-document">Supporting document <span class="optional">LOCAL ONLY</span></label>
+            <span class="upload-formats">PDF · JPG · PNG</span>
           </div>
-        </fieldset>
+          <label class="upload-control" for="supporting-document">
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <span><strong>Choose a file</strong><small>Up to 10 MB · checked in this browser only</small></span>
+            <input id="supporting-document" type="file" accept="application/pdf,image/jpeg,image/png">
+          </label>
+          <p class="upload-privacy">The document is never uploaded or saved in the log.</p>
+          <div id="document-preview" class="document-preview" aria-live="polite" hidden></div>
+        </div>
+
+        <section class="file-check" aria-labelledby="file-check-title">
+          <div class="file-check-heading">
+            <h2 id="file-check-title">Automated file check</h2>
+            <span class="check-label">NO AGE ESTIMATION</span>
+          </div>
+          <p>Checks file type and size, then confirms that uploaded images can be opened. PDF contents are not inspected.</p>
+        </section>
 
         <div class="form-footer">
-          <span class="local-note"><span aria-hidden="true">↳</span> Entries stay in this browser</span>
-          <button id="submit-button" class="submit-button" type="submit"><span>Save review</span><span aria-hidden="true">↗</span></button>
+          <span class="local-note"><span aria-hidden="true">↳</span> No face or eligibility analysis</span>
+          <button id="submit-button" class="submit-button" type="submit" disabled><span>Check document</span><span aria-hidden="true">↗</span></button>
         </div>
         <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
       </form>
 
-      <footer class="workspace-footer"><span>SAFEGUARD ID</span><span>Human review only · No biometric estimation</span></footer>
+      <footer class="workspace-footer"><span>SAFEGUARD ID</span><span>File checks only · No biometric estimation</span></footer>
     </section>
 
     <aside class="audit-panel" aria-labelledby="audit-title">
       <div class="audit-heading">
         <div>
           <div class="eyebrow audit-eyebrow">THIS BROWSER</div>
-          <h2 id="audit-title">Review log</h2>
+          <h2 id="audit-title">File check log</h2>
         </div>
         <span id="review-count" class="count-badge">0</span>
       </div>
-      <p class="audit-description">A private, local record for this device. Worker references are not uploaded or synced.</p>
+      <p class="audit-description">Local technical checks only. No age or work eligibility decisions are recorded.</p>
       <div class="audit-actions">
-        <button id="export-button" class="quiet-button" type="button" title="Export reviews as CSV" aria-label="Export reviews as CSV" disabled>↓ <span>Export CSV</span></button>
-        <button id="clear-button" class="icon-button" type="button" title="Clear review log" aria-label="Clear review log" disabled>×</button>
+        <button id="export-button" class="quiet-button" type="button" title="Export file checks as CSV" aria-label="Export file checks as CSV" disabled>↓ <span>Export CSV</span></button>
+        <button id="clear-button" class="icon-button" type="button" title="Clear file check log" aria-label="Clear file check log" disabled>×</button>
       </div>
       <div id="review-list" class="review-list" aria-live="polite"></div>
-      <div class="storage-note"><span class="storage-icon" aria-hidden="true">⌂</span><span>Stored only in this browser's local storage. Clearing browser data removes this log.</span></div>
+      <div class="storage-note"><span class="storage-icon" aria-hidden="true">⌂</span><span>References and technical check results stay in this browser. Clearing browser data removes this log.</span></div>
     </aside>
   </main>
 </body>
